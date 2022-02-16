@@ -245,3 +245,8 @@ calculate_AF_AC_AN_values_based_on_genotype_info () {
     return $?;
 }
 
+
+# From: https://www.biostars.org/p/50923/
+get_number_of_variants_in_vcf() {
+    vcf-annotate --fill-type $1 | grep -oP "TYPE=\w+" | sort | uniq -c
+}
