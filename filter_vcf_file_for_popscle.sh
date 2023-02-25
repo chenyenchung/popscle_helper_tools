@@ -203,21 +203,30 @@ filter_out_mutations_homozygous_in_all_samples () {
 
 
 
-only_keep_mutations_homozygous_in_one_sample () {
+only_keep_mutations_homozygous_in_k_samples () {
     # VCF input file to use or stdin when no VCF input file is given.
-    local vcf_input_file="${1:-/dev/stdin}";
+    local num_re='^[0-9]+$'
 
-    # Only keep mutations (homozygous) which are found only in one sample,
-    # but not at all (heterozygous/homozygous) in other samples.
-    #bcftools view --include 'AC=2 && ( GT = "1|1" | GT = "1/1")' "${vcf_input_file}";
+		if [[ "$1" == ?(-)+([[:digit:]]) ]]; then
+      # echo "k is provided. Input is either stdin or provided by the second argument.";
+		  local vcf_input_file="${2:-/dev/stdin}";
+		  local k=$1
+		fi
+		
+		
+		if [[ -z $k ]]; then
+      # echo "k is not provided and set to 1. Input is either stdin or provided by the first argument.";
+		  local vcf_input_file=${1:-/dev/stdin}
+		  local k=1
+		fi
+   
     bcftools view \
-        --include 'COUNT(GT="AA") = 1 && COUNT(GT="RR") = (N_SAMPLES - 1)' \
+        --include "COUNT(GT='AA') = ${k} && COUNT(GT='RR') = (N_SAMPLES - ${k})" \
         "${vcf_input_file}";
+
 
     return $?;
 }
-
-
 
 only_keep_mutations_heterozygous_or_homozygous_in_one_sample () {
     # VCF input file to use or stdin when no VCF input file is given.
